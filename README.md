@@ -11,7 +11,6 @@ This repository is one connected system:
 - The **website** (built from `docs/`) is where the science is shared.
 - **GitHub** connects them through commits and version history.
 
-
 ## Goals
 
 1. Build a harmonized, open database of ectotherm thermal tolerance experiments with
