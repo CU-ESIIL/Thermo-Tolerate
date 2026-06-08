@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 720" role="img" aria-label="Abstract environmental data science hero placeholder">
+  <defs>
+    <linearGradient id="hero-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#12324a"/>
+      <stop offset="45%" stop-color="#1d7e88"/>
+      <stop offset="100%" stop-color="#edf4f2"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="720" fill="url(#hero-bg)"/>
+  <circle cx="260" cy="164" r="110" fill="#8de0e8" opacity="0.22"/>
+  <circle cx="1310" cy="160" r="150" fill="#ffffff" opacity="0.12"/>
+  <path d="M0 548 C214 452 392 612 560 548 S920 382 1130 450 S1390 620 1600 520 L1600 720 L0 720 Z" fill="#f5f8f7" opacity="0.9"/>
+  <path d="M0 590 C182 512 332 640 514 594 S842 452 1036 510 S1378 664 1600 594 L1600 720 L0 720 Z" fill="#d7e2e6" opacity="0.74"/>
+  <g stroke="#ffffff" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.78">
+    <path d="M184 434 C298 390 396 458 488 400 S680 286 792 326 S1014 472 1110 430 S1298 318 1416 364"/>
+    <path d="M222 304 L360 264 L474 316 L618 214 L764 256 L908 166 L1030 214"/>
+  </g>
+  <g fill="#ffffff">
+    <circle cx="360" cy="264" r="12"/>
+    <circle cx="618" cy="214" r="12"/>
+    <circle cx="908" cy="166" r="12"/>
+    <circle cx="1110" cy="430" r="12"/>
+  </g>
+</svg>

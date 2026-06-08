@@ -1,0 +1,73 @@
+site_name: 'ESIIL Working Group OASIS'
+site_description: 'Repository and website template for ESIIL working groups'
+site_author: Ty Tuff
+site_url: https://cu-esiil.github.io/Working_group_OASIS
+
+# Repository
+repo_name: Working_group_OASIS
+repo_url: https://github.com/CU-ESIIL/Working_group_OASIS
+# The edit URI points MkDocs Material at the docs/ source so page edit links open in GitHub edit mode.
+edit_uri: edit/main/docs/
+# Copyright
+copyright: 'Copyright &copy; 2024 University of Colorado Boulder'
+
+# Page tree
+nav:
+  - Home: index.md
+  - Work Plan: work-plan.md
+  - How This Group Works: how-this-group-works.md
+  - ESIIL and Team Resources:
+      - Team Trainings: esiil-resources/team-trainings.md
+      - ESIIL Code of Conduct: esiil-resources/code-of-conduct.md
+      - Community Care: community-care.md
+
+# Configuration
+theme:
+  highlightjs: true
+  name: material
+  font: false
+  logo: 'assets/esiil_content/ESIIL_logo.png'
+  favicon: 'assets/esiil_content/favicon.ico'
+  features:
+    - navigation.sections
+    - navigation.instant
+    - navigation.tracking
+    - navigation.indexes
+    - navigation.top
+    - toc.integrate
+    - toc.follow
+    - content.action.edit
+    - content.code.copy
+  language: en
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      primary: 'white'
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to system preference
+
+# Options
+extra:
+  social:
+    - icon: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/tokens.css
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - attr_list
+  - pymdownx.snippets:
+      base_path:
+        - docs
+
+validation:
+  omitted_files: ignore
+
+plugins:
+    - search
