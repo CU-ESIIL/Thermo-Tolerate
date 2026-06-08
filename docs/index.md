@@ -59,8 +59,8 @@ ectotherm population responses to real-world heatwave dynamics across taxa and e
 
 ## Current Phase
 
-Pre-meeting coordination (Mar–May 2026): establishing communication, compiling datasets,
-and building metadata templates ahead of **Meeting 1 (Boulder, June 2026)**.
+Pre-meeting coordination (Mar–Aug 2026): establishing communication, compiling datasets,
+and building metadata templates ahead of **Meeting 1 (Boulder, Aug 2026)**.
 
 ## Team
 
