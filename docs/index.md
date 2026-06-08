@@ -8,6 +8,8 @@ tolerance — one that accounts for both *how hot* it gets and *how long* the he
 - **Repository** (where the science happens — data, code, workflows, outputs): [add link]
 - **Website** (where the science is shared): this site
 
+![Thermal tolerance workflow for *Culex tarsalis*: temperature-dependent survival (A) fit to a thermal tolerance surface (B), then combined with temperature records to hindcast weekly survival and validate against observed abundance (C)][slot-hero]{ .homepage-hero }
+
 ## Abstract
 
 Thermal tolerance determines how ectothermic animals survive climate extremes, but
@@ -59,8 +61,8 @@ ectotherm population responses to real-world heatwave dynamics across taxa and e
 
 ## Current Phase
 
-Pre-meeting coordination (Mar–Aug 2026): establishing communication, compiling datasets,
-and building metadata templates ahead of **Meeting 1 (Boulder, Aug 2026)**.
+Pre-meeting coordination (Mar–May 2026): establishing communication, compiling datasets,
+and building metadata templates ahead of **Meeting 1 (Boulder, June 2026)**.
 
 ## Team
 
@@ -86,3 +88,5 @@ and building metadata templates ahead of **Meeting 1 (Boulder, Aug 2026)**.
 - GitHub repository: [link]
 - Data / resources: [link]
 - Outputs / dashboard: [link]
+
+--8<-- "_generated/image_slots.md"
