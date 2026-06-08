@@ -5,10 +5,7 @@
 An ESIIL Working Group building a time-dependent framework for ectotherm thermal
 tolerance — one that accounts for both *how hot* it gets and *how long* the heat lasts.
 
-- **Repository** (where the science happens — data, code, workflows, outputs): [add link]
-- **Website** (where the science is shared): this site
-
-![Thermal tolerance workflow for *Culex tarsalis*: temperature-dependent survival (A) fit to a thermal tolerance surface (B), then combined with temperature records to hindcast weekly survival and validate against observed abundance (C)][slot-hero]{ .homepage-hero }
+![Thermal tolerance workflow for *Culex tarsalis*: temperature-dependent survival (A) fit to a thermal tolerance surface (B), then combined with temperature records to hindcast weekly survival and validate against observed abundance (C)][slot-hero]{  .homepage-hero style="display:block; max-width:520px; width:100%; height:auto; margin:1rem auto;" }
 
 ## Abstract
 
@@ -82,11 +79,6 @@ and building metadata templates ahead of **Meeting 1 (Boulder, June 2026)**.
 | Leah Johnson | Member | Virginia Tech | Statistics |
 | Emmanuel Tackie | Member | Arizona State University | Thermal ecology |
 
-## Key Links
 
-- Main working document: [link]
-- GitHub repository: [link]
-- Data / resources: [link]
-- Outputs / dashboard: [link]
 
 --8<-- "_generated/image_slots.md"
