@@ -5,7 +5,7 @@
 An ESIIL Working Group building a time-dependent framework for ectotherm thermal
 tolerance — one that accounts for both *how hot* it gets and *how long* the heat lasts.
 
-![Thermal tolerance workflow for *Culex tarsalis*: temperature-dependent survival (A) fit to a thermal tolerance surface (B), then combined with temperature records to hindcast weekly survival and validate against observed abundance (C)][slot-hero]{  .homepage-hero style="display:block; max-width:520px; width:100%; height:auto; margin:1rem auto;" }
+![Thermal tolerance workflow for *Culex tarsalis*: temperature-dependent survival (A) fit to a thermal tolerance surface (B), then combined with temperature records to hindcast weekly survival and validate against observed abundance (C)][slot-hero]{  style="display:block; max-width:520px; width:100%; height:auto; margin:1rem auto;" }
 
 ## Abstract
 
