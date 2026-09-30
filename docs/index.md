@@ -68,17 +68,16 @@ and building metadata templates ahead of **Meeting 1 (Boulder, June 2026)**.
 | Kelsey Lyberger | PI | Arizona State University | Quantitative ecology |
 | Andrew Villeneuve | Collaboration Lead | University of New Hampshire | Marine ecology |
 | Rui Cheng | Tech Lead | Claremont McKenna College | Remote sensing |
-| Easton White | Member | University of New Hampshire | Theoretical ecology |
 | Stephanie Bristow | Member | Michigan State University | Freshwater ecophysiology |
-| Nicholas Galle | Member | University of Notre Dame | Computational ecology / data science |
-| Alison Robey | Member | Yale University | Theoretical ecology |
 | Lauren Buckley | Member | University of Washington | Physiological ecology |
+| Chris Dwane | Member | University of Plymouth | Marine ecototherm ecophysiology |
+| Nicholas Galle | Member | University of Notre Dame | Computational ecology / data science |
 | Alex Gunderson | Member | Tulane University | Comparative physiology |
-| Matt Sasaki | Member | University of Massachusetts Lowell | Evolutionary ecology |
-| Ruby Krasnow | Member | University of Maine | Quantitative marine ecology |
 | Leah Johnson | Member | Virginia Tech | Statistics |
+| Ruby Krasnow | Member | University of Maine | Quantitative marine ecology |
+| Alison Robey | Member | Yale University | Theoretical ecology |
+| Matt Sasaki | Member | University of Massachusetts Lowell | Evolutionary ecology |
 | Emmanuel Tackie | Member | Arizona State University | Thermal ecology |
-
-
+| Easton White | Member | University of New Hampshire | Theoretical ecology |
 
 --8<-- "_generated/image_slots.md"
