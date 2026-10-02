@@ -1,0 +1,157 @@
+---
+title: "Rothamsted Aphid Dynamics"
+format: html
+editor: visual
+---
+
+## Aphid Abundance Data, Rothamsted
+
+```{r}
+#| echo: false
+#| warning: false
+#| setup: true
+library(tidyverse)
+library(here)
+library(ggplot2)
+library(viridis)
+library(mgcv)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+here::here()
+```
+
+```{r}
+#|eval: false
+#|
+#Raw data read in - rothamsted files too big to store on github, so not included in repo.  Download from https://doi.org/10.23637/rothamsted.00000160.v1
+rothamsted_files  <- list.files(here("data", "rothamsted"), full.names = TRUE)
+rothamsted_coords <- read_csv(here("data", "rothamsted_coordinates.csv"), show_col_types = FALSE)
+
+clean_trap <- function(x) stringr::str_squish(gsub("\u00a0", " ", as.character(x)))
+
+rothamsted_data <- map_dfr(rothamsted_files, ~ read_csv(.x, show_col_types = FALSE,
+                                                        na = c("", "NA", "*"))) %>%
+  mutate(Trap       = clean_trap(Trap),
+         Date       = as.Date(Date),
+         year       = year(Date),
+         doy        = yday(Date),
+         log_counts = log10(Total + 1))
+
+rothamsted_coords <- rothamsted_coords %>% mutate(Trap = clean_trap(Trap))
+stopifnot(length(setdiff(unique(rothamsted_data$Trap), rothamsted_coords$Trap)) == 0)
+
+rothamsted_by_year <- rothamsted_data %>%
+  group_by(year, Trap, Insect) %>%
+  summarise(Total = sum(Total, na.rm = TRUE), .groups = "drop")
+
+write.csv(rothamsted_data, here("data", "rothamsted_data.csv"), row.names = FALSE)
+
+```
+
+We can visualize the raw logged abundance date by date and species across sites.
+
+```{r}
+#| echo: false
+#| warning: false
+
+rothamsted_data <- read.csv(here("data/rothamsted_data.csv")) %>%
+  mutate(Date       = as.Date(Date),
+         year       = year(Date),
+         doy        = yday(Date),
+         log_counts = log10(Total + 1))
+
+# Built first so a GAM failure below can't leave a stale copy
+rothamsted_by_year <- rothamsted_data %>%
+  group_by(year, Trap, Insect) %>%
+  summarise(Total = sum(Total, na.rm = TRUE), .groups = "drop")
+
+species <- unique(rothamsted_data$Insect)
+
+species_raw_plot <- function(spec, dat, k = 10) {
+  spec_dat <- dat %>%
+    dplyr::filter(Insect == spec, is.finite(Total), is.finite(doy)) %>%
+    mutate(Trap = factor(Trap)) %>%
+    droplevels()
+
+  # Separate seasonal smooth per trap, pooled across years.
+  # Tweedie (log link) because Total is a non-integer daily mean with zeros.
+  spec_gam <- gam(Total ~ Trap + s(doy, by = Trap, k = k),
+                  data = spec_dat, method = "REML", family = tw())
+
+  # Prediction grid: each trap over its own observed doy range
+  pred_grid <- spec_dat %>%
+    group_by(Trap) %>%
+    summarise(doy = list(seq(min(doy), max(doy), length.out = 200)),
+              .groups = "drop") %>%
+    tidyr::unnest(doy)
+
+  pr <- predict(spec_gam, newdata = pred_grid, se.fit = TRUE, type = "link")
+
+  # Link scale is natural log; convert to log10 to match the plotted data
+  pred_grid <- pred_grid %>%
+    mutate(fit = pr$fit / log(10),
+           lwr = (pr$fit - 1.96 * pr$se.fit) / log(10),
+           upr = (pr$fit + 1.96 * pr$se.fit) / log(10))
+
+  ggplot(spec_dat, aes(x = doy, y = log10(Total + 1))) +
+    geom_line(aes(color = year, group = year), alpha = 0.6) +
+    geom_ribbon(data = pred_grid, aes(x = doy, ymin = lwr, ymax = upr),
+                inherit.aes = FALSE, fill = "red", alpha = 0.15) +
+    geom_line(data = pred_grid, aes(x = doy, y = fit),
+              inherit.aes = FALSE, color = "red", linewidth = 1) +
+    facet_wrap(~ Trap) +
+    labs(title = paste("Total Counts by Date and Trap:", spec),
+         x = "Day of Year", y = "Log10 Counts", color = "Year") +
+    theme_minimal() +
+    scale_color_viridis_c() +
+    coord_cartesian(ylim = c(0, 5))   # zooms without dropping ribbon values
+}
+
+# One species failing (e.g., a sparse trap) won't stop the rest
+plots_list <- map(species, ~ species_raw_plot(.x, rothamsted_data)) %>% set_names(species)
+names(plots_list)[map_lgl(plots_list, is.null)]   # species that failed, if any
+
+plots_list[[1]]
+plots_list[[2]]
+plots_list[[3]]
+```
+
+We can also visualize year-by-year
+
+```{r}
+#| echo: false
+#| warning: false
+#summary table to check
+summary_table <- rothamsted_by_year %>%
+  group_by(Trap, year) 
+#summary_table
+
+ggplot(summary_table, aes(x = year, y = Total, color = Trap)) +
+  geom_line() +
+  labs(title = "Total Counts by Year and Trap", x = "Year", y = "Total Counts") +
+  theme_minimal() +
+  facet_wrap(.~Insect,nrow=3)
+```
+
+Where are these sites?
+
+```{r}
+#| echo: false
+#| warning: false
+
+uk <- ne_countries(country="united kingdom", returnclass="sf",scale="medium")
+
+rroth_sf <- rothamsted_by_year %>%
+  group_by(Trap) %>%
+  summarise(n_years = n_distinct(year), .groups = "drop") %>%
+  left_join(rothamsted_coords, by = "Trap") %>%
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4326)
+
+ggplot() +
+  geom_sf(data = uk) +
+  geom_sf(data = rroth_sf, aes(color = n_years), size = 3) +
+  theme_minimal()
+
+```

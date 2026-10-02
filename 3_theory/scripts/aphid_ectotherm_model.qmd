@@ -1,0 +1,344 @@
+---
+title: "Aphid Ectotherm Model"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: setup
+
+library(NicheMapR)
+library(dplyr)
+library(tidyr)    # pivot_wider() in the last chunk
+library(ggplot2)
+library(sf)
+library(mcera5)
+library(here)     # paths resolve from the 3_theory folder (3_theory.Rproj)
+```
+
+## Ectotherm Model Parameters for Aphid Species
+
+The below script was initially assembled using Claude - careful review and validation of each parameter is required before any further steps.
+
+```{r}
+
+# =============================================================================
+# NicheMapR ectotherm() parameters for three cereal aphids
+#   Metopolophium dirhodum, Rhopalosiphum padi, Sitobion avenae
+#
+# Purpose: body-temperature (Tb) simulations for the Rothamsted trap sites,
+# to be post-processed with TDT / TTL damage accrual (heat + cold branches)
+# fitted from data/aphid_tdt.csv.
+#
+# Status of each value is tagged:
+#   [DATA]   from your own aphid_tdt.csv (Li et al. 2025 JEB design)
+#   [LIT]    taken from a published source (see refs at bottom)
+#   [ASSUME] reasoned default - check / measure / run sensitivity
+#
+# No published NicheMapR heat-budget parameterization exists for these
+# species (or any aphid) that I could find. What is reused:
+#   - NicheMapR's built-in ellipsoid geometry (shape = 2)
+#   - AmP DEB entries for other aphids (optional block at the end)
+#   - Your TDT data for thermal limits
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# 1. Species-level trait table
+# -----------------------------------------------------------------------------
+aphid_traits <- tibble::tribble(
+  ~species,                  ~code,        ~Ww_g,    ~shape_b, ~shape_c, ~alpha, ~CT_max, ~CT_min, ~T_pref, ~T_F_min, ~T_F_max, ~Usrhyt, ~minshade, ~maxshade,
+  "Metopolophium dirhodum",  "M_dirhodum", 0.59e-3,  0.45,     0.35,     0.70,   35.5,    -4.6,    20.0,    5.0,      28.0,     0.15,    30,        90,
+  "Rhopalosiphum padi",      "R_padi",     0.41e-3,  0.60,     0.45,     0.80,   36.9,    -3.7,    25.0,    5.0,      28.0,     0.05,    50,        90,
+  "Sitobion avenae",         "S_avenae",   0.56e-3,  0.45,     0.35,     0.75,   36.4,    -2.7,    22.5,    5.0,      28.0,     0.50,     0,        80
+)
+# Column notes
+#  Ww_g      [LIT] wet mass of 6-d (3rd instar) aphids, Li et al. 2025 JEB:
+#            S. avenae 0.56 mg, M. dirhodum 0.59 mg, R. padi 0.41 mg.
+#            Same cohort design as your TDT data, so Tb and tolerance match.
+#            Apterous adults are heavier (~1 mg): rerun with adult mass too.
+#            At <1 mg, Tb is almost insensitive to mass (Tb ~ local air/leaf).
+#  shape_b,  [ASSUME] prolate ellipsoid (shape = 2), long axis = 'a'.
+#  shape_c   width:length ~0.45 for spindle-shaped Macrosiphini (S. avenae,
+#            M. dirhodum), ~0.6 for broadly oval R. padi. Height:length ~0.35-0.45.
+#            With rho = 1000 kg/m3 these imply body lengths of ~1.9 mm
+#            (S. avenae, M. dirhodum) and ~1.4 mm (R. padi): plausible for
+#            late instars.
+#  alpha     [ASSUME] solar absorptivity. Pale green M. dirhodum lowest,
+#            olive/dark R. padi highest, S. avenae (green or brown morphs)
+#            intermediate. Not measured for these species: priority to measure
+#            (spectrometer on live aphids) or bracket 0.6-0.9 in sensitivity.
+#  CT_max    [DATA] temperature giving LT50 = 60 min on your heat TDT curve
+#            (ages pooled; z = 4.4, 3.6, 3.5 C for Md, Rp, Sa). Hourly-step
+#            equivalent of a lethal limit. Used by NicheMapR only for retreat
+#            decisions (and death if CT_kill = 1, which we keep OFF).
+#  CT_min    [LIT] chill-coma temperature, Alford et al. 2014 PLOS ONE:
+#            Md -4.6, Sa -2.7, Rp -3.7 (R. padi n = 1, weak).
+#            Cold-TDT 60-min LT50 from your data: Md -8.5, Rp -4.8, Sa -8.2.
+#  T_pref    [LIT] temperature of maximum development rate, Dean 1974:
+#            Md 20, S. (Macrosiphum) avenae 22.5, Rp 25 C.
+#  T_F_min   [LIT] lower development threshold. Cereal-aphid literature
+#            gives 0-6 C; 5 C is the standard value (Brabec et al. 2014).
+#  T_F_max   [ASSUME] Dean 1974: all nymphs died by 30 C at constant
+#            temperature. 28 C used as the upper feeding/performance limit.
+#  Usrhyt    [ASSUME] height (m) in the crop for the microclimate run.
+#            Classic vertical partitioning in wheat: S. avenae on flag leaf /
+#            ear, M. dirhodum on mid-lower leaves, R. padi at stem base.
+#            Change with crop stage.
+#  minshade, [ASSUME] canopy shade (%). Lower in canopy -> more shade.
+#  maxshade  maxshade = refuge on leaf underside / deeper in canopy.
+
+# Fitted TDT parameters from data/aphid_tdt.csv (for post-processing Tb)
+# Method: binomial GLM of survival ~ log10(duration) per species x age x temp
+# -> LT50; then OLS log10(LT50) ~ temp, ages pooled. Refit properly in your
+# TDT pipeline (e.g. with age as a covariate); these are first-pass values.
+aphid_tdt_pars <- tibble::tribble(
+  ~code,        ~branch, ~z,    ~T_LT50_1min, ~T_LT50_60min, ~T_LT50_600min, ~R2,
+  "M_dirhodum", "heat",   4.39,  43.3,         35.5,          31.1,           0.97,
+  "R_padi",     "heat",   3.57,  43.2,         36.9,          33.3,           0.96,
+  "S_avenae",   "heat",   3.54,  42.7,         36.4,          32.9,           0.97,
+  "M_dirhodum", "cold",  -1.53, -11.2,         -8.5,          -6.9,           0.88,
+  "R_padi",     "cold",  -2.26,  -8.8,         -4.8,          -2.5,           0.64,
+  "S_avenae",   "cold",  -1.66, -11.2,         -8.2,          -6.5,           0.92
+)
+# Sanity check against Li et al. 2025: LT50 at 34 C for 6-d aphids from these
+# data = 116 (Md), 635 (Rp), 368 (Sa) min vs published 125, 696, 375 min.
+
+# -----------------------------------------------------------------------------
+# 2. Parameters shared by all three species
+# -----------------------------------------------------------------------------
+aphid_common <- list(
+  # Geometry / body
+  shape     = 2,      # ellipsoid
+  shape_a   = 1,
+  orient    = 0,      # prolate, lying lengthwise on the leaf
+  rho_body  = 1000,   # kg/m3 [ASSUME]
+  c_body    = 3073,   # J/kg/K, NicheMapR default
+  k_flesh   = 0.5,    # W/m/K, NicheMapR default
+  epsilon   = 0.95,   # IR emissivity, standard for arthropod cuticle [ASSUME]
+
+  # Radiation / contact
+  # NicheMapR's 'substrate' is the SOIL SURFACE. An aphid on a leaf does not
+  # touch soil, so conduction is switched off. Half the IR view is to the sky
+  # and half downward (canopy/ground); the downward view still sees soil
+  # temperature, which is the main structural approximation here.
+  pct_cond  = 0,
+  pct_touch = 0,
+  fatosk    = 0.5,
+  fatosb    = 0.5,
+  conv_enhance = 1,
+
+  # Behaviour
+  live       = 2,  # behaviour on, but no orientation to the sun
+  postur     = 3,  # normal silhouette, not tracking the sun
+  diurn      = 1,
+  nocturn    = 1,  # phloem feeding continues at night
+  crepus     = 1,
+  shade_seek = 1,  # move to leaf underside / lower canopy
+  burrow     = 0,  # no soil retreat
+  climb      = 0,
+  delta_shade = 3,
+
+  # Heat budget mode
+  transient  = 0,  # at ~0.5 mg the thermal time constant is seconds, so
+                   # steady state at an hourly step is appropriate
+  enberr     = 0.01, # default; the solver tolerance is enberr * mass, so it
+                     # already scales down for a sub-mg animal
+
+  # Water loss (minor for Tb at this size; aphids drink phloem continuously)
+  pct_wet   = 0.05,  # % surface as free water [ASSUME]
+  pct_eyes  = 0,
+  pct_mouth = 0,
+  pantmax   = 1,
+
+  # Metabolism: V_O2 (ml/h) = M_1 * M^M_2 * 10^(M_3*Tb) * 10^M_4, M in g.
+  # Metabolic heat is negligible for Tb at <1 mg; these only affect O2 and
+  # respiratory water outputs. M_3 = log10(Q10)/10 with Q10 = 2.
+  # M_1 is calibrated below to a placeholder resting rate.
+  M_2 = 0.82,  # insect interspecific mass exponent ~0.75-0.82 [ASSUME]
+  M_3 = log10(2) / 10,
+  M_4 = 0,
+
+  # Death / energetics switched off: TDT damage is handled afterwards
+  CT_kill = 0,
+  DEB     = 0
+)
+
+# Calibrate M_1 so that V_O2 = target at 20 C for a given mass.
+# Placeholder target: 3 ul O2 / mg / h at 20 C [ASSUME]. Replace with a
+# measured value (e.g. respirometry from the Li et al. 2025 metabolic work).
+calib_M1 <- function(Ww_g, vo2_ul_mg_h = 3, Tref = 20, M_2, M_3) {
+  vo2_ml_h <- vo2_ul_mg_h * (Ww_g * 1000) / 1000
+  vo2_ml_h / (Ww_g^M_2 * 10^(M_3 * Tref))
+}
+```
+
+## Build Argument Function for `ectotherm()` for each species
+
+```{r}
+# -----------------------------------------------------------------------------
+# 3. Build the argument list for one species
+# -----------------------------------------------------------------------------
+aphid_ecto_args <- function(code, micro) {
+  tr <- aphid_traits[aphid_traits$code == code, ]
+  stopifnot(nrow(tr) == 1)
+
+  # Every microclimate input is passed explicitly. ectotherm()'s defaults
+  # otherwise look for an object called `micro` in the global environment,
+  # and a stale one there gives a mismatched number of days.
+  ndays <- nrow(micro$metout) / 24
+  rain  <- micro$RAINFALL
+  if (length(rain) != ndays) {        # e.g. monthly totals from micro_global
+    rain <- rep(sum(rain) / ndays, ndays)
+  }
+
+  micro_inputs <- list(
+    nyears    = micro$nyears,
+    metout    = micro$metout,    shadmet   = micro$shadmet,
+    soil      = micro$soil,      shadsoil  = micro$shadsoil,
+    soilmoist = micro$soilmoist, shadmoist = micro$shadmoist,
+    humid     = micro$humid,     shadhumid = micro$shadhumid,
+    soilpot   = micro$soilpot,   shadpot   = micro$shadpot,
+    tcond     = micro$tcond,     shadtcond = micro$shadtcond,
+    rainfall  = rain,
+    rainhr    = rep(-1, nrow(micro$metout)),
+    preshr    = rep(101325 * ((1 - (0.0065 * as.numeric(micro$elev) / 288))^(1 / 0.190284)),
+                    nrow(micro$metout)),
+    DEP       = micro$DEP,
+    KS        = micro$KS[seq(1, 19, 2)],
+    b         = micro$BB[seq(1, 19, 2)],
+    PE        = abs(micro$PE[seq(1, 19, 2)]) * -1,
+    alpha_sub = 1 - micro$REFL,
+    elev      = as.numeric(micro$elev),
+    longitude = as.numeric(micro$longlat[1]),
+    latitude  = as.numeric(micro$longlat[2])
+  )
+
+  args <- c(aphid_common, micro_inputs, list(
+    Ww_g      = tr$Ww_g,
+    shape_b   = tr$shape_b,
+    shape_c   = tr$shape_c,
+    alpha_max = tr$alpha,
+    alpha_min = tr$alpha,
+    CT_max    = tr$CT_max,
+    CT_min    = tr$CT_min,
+    T_pref    = tr$T_pref,
+    T_F_min   = tr$T_F_min,
+    T_F_max   = tr$T_F_max,
+    T_B_min   = tr$T_F_min,  # basking is not meaningful for aphids
+    T_RB_min  = tr$T_F_min,
+    minshades = rep(tr$minshade, ndays * 24),
+    maxshades = rep(tr$maxshade, ndays * 24)
+  ))
+  args$M_1 <- calib_M1(tr$Ww_g, M_2 = args$M_2, M_3 = args$M_3)
+  args
+}
+
+```
+
+## Get Microclimate Data
+
+Here, we will extract microclimate data for the Rothamsted site Broom's Barn for 2024. We will need to set seperate bounding boxes for each site to avoid downloading huge .nc files.
+
+```{r}
+
+# -----------------------------------------------------------------------------
+# 4. Example run at one trap
+# The microclimate must be run separately for each species because Usrhyt
+# (height in the crop) and shade differ. The minshade/maxshade in micro must
+# match the values passed to ectotherm.
+
+# -----------------------------------------------------------------------------
+#get bbox of our trap sites
+roth_coords <- read.csv(here("data", "rothamsted_coordinates.csv"))
+#run only at one trap for now, broom's barn
+bb<-c(roth_coords[1,3],roth_coords[1,2])
+sf_bb <- st_as_sf(data.frame(lon = bb[1], lat = bb[2]), coords = c("lon", "lat"), crs = 4326)
+bbox <- st_bbox(sf_bb)
+
+#buildmcera5 request
+req <- build_era5_request(xmin = bbox[1], xmax = bbox[3], 
+                          ymin = bbox[2], ymax = bbox[4],
+                          start_time = as.POSIXct("01/01/2024", format = "%d/%m/%Y"),
+                          end_time = as.POSIXct("31/12/2024", format = "%d/%m/%Y"), 
+                          outfile_name = "era5_roth_2024")
+
+#this takes forever - unsilence when ready
+#request_era5(request = req, out_path = here("data", "mcera5"),overwrite=F)
+```
+
+## Run Aphid Ecotherm Model for One site
+
+Here, we run the aphid microclimate model for Broom's Barn site throughout 2024.
+
+```{r}
+#| label: run-aphid
+#| warning: false
+#| cache: true
+
+run_aphid <- function(code, loc, dstart,dfinish) {
+  tr <- aphid_traits[aphid_traits$code == code, ]
+  micro <- micro_era5(loc = loc, Usrhyt = tr$Usrhyt,
+                        minshade = tr$minshade, maxshade = tr$maxshade,
+                        dstart = dstart, dfinish = dfinish,spatial = here("data", "mcera5", "era5_roth_2024"),
+                        run.gads = 2)  # R version of the aerosol model; the Fortran one (default) can crash a non-interactive R session
+  args  <- aphid_ecto_args(code, micro)
+  ecto  <- do.call(ectotherm, args)
+  environ <- as.data.frame(ecto$environ)
+  if (nrow(environ) == 0) {
+    stop("ectotherm() returned no output for ", tr$species,
+         ": check the 'error:' messages printed above")
+  }
+  environ$species <- tr$species
+  environ
+}
+
+
+
+# Rothamsted (Harpenden) trap, lon/lat from data/rothamsted_coordinates.csv
+out <- purrr::map_dfr(aphid_traits$code, run_aphid, loc = bb,dstart = "01/01/2024", dfinish = "31/12/2024")
+```
+
+We can then plot the resulting body temperatures predicted by the model
+
+```{r}
+#| echo: FALSE
+#| warning: FALSE
+out$date<-as.Date(out$DOY-1,origin="2024-01-01")  # 2024 is a leap year
+out$datetime <- as.POSIXct(paste(out$date,out$TIME),format="%Y-%m-%d %H",tz="UTC")
+out$TC_anom <- out%>%group_by(datetime,species)%>%mutate(TC_anom=TC-TA)%>%pull(TC_anom)
+
+# Key columns: TC (body temp), SHADE, ACT, DEP (should stay 0: no burrowing)
+ggplot() +geom_line(data=out,aes(x=datetime,y=TC,group=species)) +
+  facet_wrap(.~species) +
+  geom_line(data=out,aes(x=datetime,y=TA,color="Air Temperature, species-level height"),col="red")
+```
+
+We can also look at anomalies compared to the ambient air temperature
+
+```{r}
+#| echo: FALSE
+#| warning: FALSE
+#body temperature-air temperature anomalies
+ggplot(data = out) +
+  geom_line(aes(x = datetime, y = TC_anom, color = species)) +
+  labs(title = "Body temperature anomalies (Tb - Ta) for aphid species", x = "Date", y = "Temperature anomaly (C)") +
+  theme_minimal() +facet_grid(.~species)
+```
+
+As well as anomalies in body temperature between species. Note that species-level differences are due to slightly different parameterizations of the aphid model - we may decide to collapse into a single aphid model.
+
+```{r}
+#| echo: FALSE
+#| warning: FALSE
+#dataframes of anomalies between each pairwise species
+anomalys <- out %>% group_by(datetime,species) %>% summarise(TC=mean(TC)) %>% pivot_wider(names_from = species, values_from = TC) %>% 
+  mutate(Md_Rp=`Metopolophium dirhodum`-`Rhopalosiphum padi`,Md_Sa=`Metopolophium dirhodum`-`Sitobion avenae`,Rp_Sa=`Rhopalosiphum padi`-`Sitobion avenae`)
+
+ggplot() +
+  geom_line(data=anomalys,aes(x=datetime,y=Md_Rp)) +
+  geom_line(data=anomalys,aes(x=datetime,y=Md_Sa),color="red") +
+  geom_line(data=anomalys,aes(x=datetime,y=Rp_Sa),color="blue") +
+  labs(title="Body temperature anomalies between aphid species",x="Date",y="Body temperature anomaly (C)") +
+  theme_minimal()
+```
