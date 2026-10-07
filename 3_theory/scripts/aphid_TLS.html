@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Rothamsted Aphid Dynamics</title>
+<title>Aphid TLS</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -58,20 +58,39 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
-<script src="rothamstead_data_readin_files/libs/clipboard/clipboard.min.js"></script>
-<script src="rothamstead_data_readin_files/libs/quarto-html/quarto.js" type="module"></script>
-<script src="rothamstead_data_readin_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="rothamstead_data_readin_files/libs/quarto-html/popper.min.js"></script>
-<script src="rothamstead_data_readin_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="rothamstead_data_readin_files/libs/quarto-html/anchor.min.js"></script>
-<link href="rothamstead_data_readin_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="rothamstead_data_readin_files/libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="rothamstead_data_readin_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="rothamstead_data_readin_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="rothamstead_data_readin_files/libs/bootstrap/bootstrap-efbb37e9afcc02144ebbc7afd12a776f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="aphid_TLS_files/libs/clipboard/clipboard.min.js"></script>
+<script src="aphid_TLS_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="aphid_TLS_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="aphid_TLS_files/libs/quarto-html/popper.min.js"></script>
+<script src="aphid_TLS_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="aphid_TLS_files/libs/quarto-html/anchor.min.js"></script>
+<link href="aphid_TLS_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="aphid_TLS_files/libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="aphid_TLS_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="aphid_TLS_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="aphid_TLS_files/libs/bootstrap/bootstrap-efbb37e9afcc02144ebbc7afd12a776f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
 
 </head>
@@ -84,7 +103,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Rothamsted Aphid Dynamics</h1>
+<h1 class="title">Aphid TLS</h1>
 </div>
 
 
@@ -101,89 +120,54 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="aphid-abundance-data-rothamsted" class="level2">
-<h2 class="anchored" data-anchor-id="aphid-abundance-data-rothamsted">Aphid Abundance Data, Rothamsted</h2>
-<div class="cell" data-setup="true">
+<section id="cereal-aphid-tls" class="level2">
+<h2 class="anchored" data-anchor-id="cereal-aphid-tls">Cereal Aphid TLS</h2>
+<p>In their recent preprint, <span class="citation" data-cites="noble">Noble et al. (<a href="#ref-noble" role="doc-biblioref">n.d.</a>)</span> used time to death data from <span class="citation" data-cites="li2023">Li et al. (<a href="#ref-li2023" role="doc-biblioref">2023</a>)</span> to construct Bayesian thermal tolerance landscapes using the <code>bayesTLS</code> package. Conveniently, the three species in the paper (<em>Metopolophium dirhodum</em>, <em>Sitobion avenae</em> and <em>Rhopalosiphum padi</em>) are the same three species we extracted abundnace data for from 15 sites in the Rothamsted insect survey (<code>rothamsted_data_readin.qmd</code>). For future use, we replicate their analysis (found at <a href="https://daniel1noble.github.io/bayesTLS/#sec-aphids" class="uri">https://daniel1noble.github.io/bayesTLS/#sec-aphids</a>) here.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#their package includes the data we need - how convenient!</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(aphid_tdt)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>aphid_raw <span class="ot">&lt;-</span> aphid_tdt <span class="sc">|&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(branch <span class="sc">==</span> <span class="st">"heat"</span>, age <span class="sc">==</span> <span class="st">"6"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">species =</span> <span class="fu">droplevels</span>(species))</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>aphid_std <span class="ot">&lt;-</span> <span class="fu">standardize_data</span>(aphid_raw, <span class="at">temp =</span> <span class="st">"temp"</span>, <span class="at">duration =</span> <span class="st">"duration_min"</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                              <span class="at">n_total =</span> <span class="st">"n_total"</span>, <span class="at">n_surv =</span> <span class="st">"n_surv"</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                              <span class="at">duration_unit =</span> <span class="st">"minutes"</span>)   <span class="co"># keeps `species`</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(aphid_std)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "C:/Users/drewv/R/Thermo-Tolerate/3_theory"</code></pre>
+<pre><code>tibble [436 × 12] (S3: tbl_df/tbl/data.frame)
+ $ species     : Factor w/ 3 levels "M_dirhodum","S_avenae",..: 1 1 1 1 1 1 1 1 1 1 ...
+ $ age         : Factor w/ 3 levels "2","6","12": 2 2 2 2 2 2 2 2 2 2 ...
+ $ branch      : Factor w/ 2 levels "heat","cold": 1 1 1 1 1 1 1 1 1 1 ...
+ $ temp        : num [1:436] 40 40 40 40 40 40 40 40 40 40 ...
+ $ duration_min: num [1:436] 2 2 4 4 4 5 5 5 6 6 ...
+ $ n_total     : int [1:436] 4 10 9 10 10 10 10 10 10 9 ...
+ $ n_surv      : num [1:436] 4 9 9 10 10 8 6 5 2 6 ...
+ $ duration    : num [1:436] 2 2 4 4 4 5 5 5 6 6 ...
+ $ logd        : num [1:436] 0.301 0.301 0.602 0.602 0.602 ...
+ $ n_dead      : num [1:436] 0 1 0 0 0 2 4 5 8 3 ...
+ $ survival    : num [1:436] 1 0.9 1 1 1 ...
+ $ temp_c      : num [1:436] 3.13 3.13 3.13 3.13 3.13 ...
+ - attr(*, "tdt_meta")=List of 6
+  ..$ temp_mean     : num 36.9
+  ..$ duration_unit : chr "minutes"
+  ..$ random_effects: NULL
+  ..$ response_type : chr "count"
+  ..$ response_var  : NULL
+  ..$ proportion_eps: NULL</code></pre>
 </div>
 </div>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#|eval: false</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#|</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Raw data read in - rothamsted files too big to store on github, so not included in repo.  Download from https://doi.org/10.23637/rothamsted.00000160.v1</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>rothamsted_files  <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"rothamsted"</span>), <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>rothamsted_coords <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"rothamsted_coordinates.csv"</span>), <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>clean_trap <span class="ot">&lt;-</span> <span class="cf">function</span>(x) stringr<span class="sc">::</span><span class="fu">str_squish</span>(<span class="fu">gsub</span>(<span class="st">"\u00a0"</span>, <span class="st">" "</span>, <span class="fu">as.character</span>(x)))</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>rothamsted_data <span class="ot">&lt;-</span> <span class="fu">map_dfr</span>(rothamsted_files, <span class="sc">~</span> <span class="fu">read_csv</span>(.x, <span class="at">show_col_types =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                                                        <span class="at">na =</span> <span class="fu">c</span>(<span class="st">""</span>, <span class="st">"NA"</span>, <span class="st">"*"</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Trap       =</span> <span class="fu">clean_trap</span>(Trap),</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">Date       =</span> <span class="fu">as.Date</span>(Date),</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">year       =</span> <span class="fu">year</span>(Date),</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">doy        =</span> <span class="fu">yday</span>(Date),</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>         <span class="at">log_counts =</span> <span class="fu">log10</span>(Total <span class="sc">+</span> <span class="dv">1</span>))</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>rothamsted_coords <span class="ot">&lt;-</span> rothamsted_coords <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Trap =</span> <span class="fu">clean_trap</span>(Trap))</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">length</span>(<span class="fu">setdiff</span>(<span class="fu">unique</span>(rothamsted_data<span class="sc">$</span>Trap), rothamsted_coords<span class="sc">$</span>Trap)) <span class="sc">==</span> <span class="dv">0</span>)</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>rothamsted_by_year <span class="ot">&lt;-</span> rothamsted_data <span class="sc">%&gt;%</span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year, Trap, Insect) <span class="sc">%&gt;%</span></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">Total =</span> <span class="fu">sum</span>(Total, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(rothamsted_data, <span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"rothamsted_data.csv"</span>), <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>We can visualize the raw logged abundance date by date and species across sites.</p>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>character(0)</code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="rothamstead_data_readin_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="rothamstead_data_readin_files/figure-html/unnamed-chunk-3-2.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="rothamstead_data_readin_files/figure-html/unnamed-chunk-3-3.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>We can also visualize year-by-year</p>
-<div class="cell">
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="rothamstead_data_readin_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>Where are these sites?</p>
-<div class="cell">
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="rothamstead_data_readin_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
+
 </section>
 
-</main>
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-li2023" class="csl-entry" role="listitem">
+Li, Yuan-Jie, Si-Yang Chen, Lisa Bjerregaard Jørgensen, et al. 2023. <span>“Interspecific Differences in Thermal Tolerance Landscape Explain Aphid Community Abundance Under Climate Change.”</span> <em>Journal of Thermal Biology</em> 114 (May): 103583. <a href="https://doi.org/10.1016/j.jtherbio.2023.103583">https://doi.org/10.1016/j.jtherbio.2023.103583</a>.
+</div>
+<div id="ref-noble" class="csl-entry" role="listitem">
+Noble, Daniel W. A., Pieter A. Arnold, Shinichi Nakagawa, and Patrice Pottier. n.d. <em>A Flexible Modelling Framework for Estimating Thermal Tolerance and Sensitivity</em>. <a href="https://doi.org/10.64898/2026.07.16.738378">https://doi.org/10.64898/2026.07.16.738378</a>.
+</div>
+</div></section></div></main>
 <!-- /main column -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

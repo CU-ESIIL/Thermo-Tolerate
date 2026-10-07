@@ -1,0 +1,138 @@
+---
+title: "Aphid TLS"
+format: html
+editor: visual
+bibliography: references.bib
+---
+
+```{r}
+#| setup: true
+#| message: false
+#| echo: false
+
+
+library(tidyverse)
+library(bayesTLS) #requires brms, Rcpp, STAN installation. I use rstan backend on windows, but you should use cmdstanr
+library(ggplot2)
+library(here)
+library(rstan)
+library(brms)
+library(lubridate)
+
+```
+
+## Cereal Aphid TLS
+
+In their recent preprint, @noble used time to death data from @li2023 to construct Bayesian thermal tolerance landscapes using the `bayesTLS` package. Conveniently, the three species in the paper (*Metopolophium dirhodum*, *Sitobion avenae* and *Rhopalosiphum padi*) are the same three species we extracted abundnace data for from 15 sites in the Rothamsted insect survey (`rothamsted_data_readin.qmd`). For future use, we replicate their analysis (found at <https://daniel1noble.github.io/bayesTLS/#sec-aphids>) here.
+
+## Data Read-in
+
+```{r}
+#| warning: false
+#| message: false
+#their package includes the data we need - how convenient!
+data(aphid_tdt)
+aphid_raw <- aphid_tdt |>
+  dplyr::filter(branch == "heat", age == "6") |>
+  dplyr::mutate(species = droplevels(species))
+
+aphid_std <- standardize_data(aphid_raw, temp = "temp", duration = "duration_min",
+                              n_total = "n_total", n_surv = "n_surv",
+                              duration_unit = "minutes")   # keeps `species`
+str(aphid_std)
+```
+
+## Construct 4PL TLS Model
+
+We use the Noble et al. code here to construct a 4PL TLS model. Note that
+
+```{r}
+#| warning: false
+#| message: false
+# Species effects on z and CTmax with a temperature
+# slope on k, but we constrain the asymptotes to be constant (up = ~ 1, low = ~ 1).
+# Letting up/low vary by species x temperature overfits here and there is littl evidence up 
+# and low vary dramatically with temperature.
+system.time(
+wf_aphid <- fit_4pl(aphid_std,
+                    ctmax = ~ 0 + species,
+                    z = ~ 0 + species,
+                    k = ~ temp_c,
+                    up = ~ 1,
+                    low = ~ 1,
+                    t_ref = 60, silent = 2, refresh = 0,
+                    backend    = "rstan",  #delete line if using cmdstanR
+                    file_refit = "on_change",
+                    file       = here("data", "aphid_species")))
+summary(wf_aphid)
+```
+
+## Per-species TDT parameters
+
+We can extract canonical TDT parameters for each species.
+
+```{r}
+#|echo: false
+#|warning: false
+
+aphid_tls <- tls(wf_aphid, by = "species", lethal = TRUE)
+aphid_est <- get_tls_est(aphid_tls)
+
+# One row per species: median [95% CI] for each quantity.
+aphid_tls_tbl <- aphid_est |>
+  dplyr::mutate(
+    value    = format_interval(median, lower, upper, digits = 1),
+    quantity = factor(quantity, levels = c("z", "CTmax", "Tcrit"),
+                      labels = c("z (°C)", "CTmax 1h (°C)", "Tcrit (°C)")),
+    species  = dplyr::recode(species, M_dirhodum = "M. dirhodum",
+                             R_padi = "R. padi", S_avenae = "S. avenae")) |>
+  dplyr::select(species, quantity, value) |>
+  tidyr::pivot_wider(names_from = quantity, values_from = value) |>
+  dplyr::rename(Species = species)
+tinytable::tt(aphid_tls_tbl)
+
+```
+
+## Thermal Tolerance Landscapes
+
+We can plot the survival curves across experimental temperatures
+
+```{r}
+#| warning: false
+#| echo: false
+
+psc_aphid <- predict_survival_curves(wf_aphid)
+# Show the full fitted curves (clip_to_observed = FALSE): each species' complete
+# sigmoid across the shared duration range, rather than capping each temperature
+# at its longest tested exposure.
+plot_survival_curves(psc_aphid, observed = aphid_std, log_time = TRUE,
+                     clip_to_observed = FALSE)
+
+```
+
+## Moving forward to predicting injury and survival
+
+Refer to the [vignette](https://daniel1noble.github.io/bayesTLS/#sec-aphids) to see how they predict survival over temperature traces. We would be able to accomplish something similar with microclimates/measured temperatures. Functions to use are `predict_heat_injury()` and `plot_heat_injury()`.
+
+Below is an example for one summer at one site.
+
+```{r}
+#| echo: false
+#| warning: false
+micro_flat <- readRDS(here("data", "micro_uk", "micro_uk_flat.rds"))
+
+broom_2019 <- micro_flat%>%
+  filter(datetime>=as.POSIXct("06/01/2019") &
+           datetime<=as.POSIXct("09/01/2019")&
+           Trap == "Brooms_Barn_S")%>%
+  dplyr::mutate("time" = hours(datetime),
+            "temp" = TALOC,.keep="none")
+
+str(broom_2019)
+system.time(
+aphid_death_brooms_2019<-predict_heat_injury(broom_2019,
+                    wf_aphid, target_surv = "relative",
+                    trace_unit = "hours", by = "species"))
+
+plot_heat_injury()
+```

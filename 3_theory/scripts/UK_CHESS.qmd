@@ -1,0 +1,105 @@
+---
+title: "UK_mcera5"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: setup
+
+library(NicheMapR)
+library(dplyr)
+library(tidyr)    # pivot_wider() in the last chunk
+library(ggplot2)
+library(sf)
+library(furrr)
+library(terra)
+library(purrr)
+library(lubridate)
+library(here)     # paths resolve from the 3_theory folder (3_theory.Rproj)
+
+# NicheMapR finds its global climate data via a pointer file in the first library
+folder <- here("data", "global_climate")
+save(folder, file = file.path(.libPaths()[1], "gcfolder.rda"))
+```
+
+## Get Microclimate Data
+
+Here, we will extract microclimate data for the Rothamsted site Broom's Barn for 2024. We will need to set seperate bounding boxes for each site to avoid downloading huge .nc files.
+
+```{r}
+#| warning: false
+#| echo: false
+#|eval: false
+
+
+
+#get bbox of our trap sites
+roth_coords <- read.csv(here("data", "rothamsted_coordinates.csv"))
+
+sites <- distinct(roth_coords, longitude, latitude, .keep_all = TRUE)  # Kirton and Kirton 2 share coordinates
+
+site_dirs <- here("data", "micro_uk", "sites", sites$Trap)
+
+#error in micro_uk due to version mismatches in terra - fix here. Issue opened in NicheMapR 10/7/2026
+# NicheMapR's micro_uk() assumes terra::extract() returns an ID column; newer terra doesn't
+src <- deparse(NicheMapR::micro_uk, width.cutoff = 500)
+src <- gsub("x2)[, 2]", "x2)[, 1]", src, fixed = TRUE)
+micro_uk_fixed <- eval(parse(text = src))
+environment(micro_uk_fixed) <- asNamespace("NicheMapR")
+
+micro_uk_sites <- lapply(seq_along(site_dirs), function(i) {
+  micro_uk_fixed(loc = c(sites$longitude[i], sites$latitude[i]),
+                 ystart = 1990, yfinish = 2019,
+                 REFL = 0.15, aspect = 0, Usrhyt = 0.1,
+                 spatial = site_dirs[i])
+})
+
+names(micro_uk_sites) <- sites$Trap
+```
+
+```{r}
+#| warning: false
+#| echo: false
+#|eval: false
+#create dataframe of TALOC and TAREF 
+
+met_cols <- c("TALOC", "TAREF", "RHLOC", "RH", "VLOC", "VREF", "SOLR", "ZEN", "SNOWDEP")
+
+micro_flat <- imap_dfr(micro_uk_sites, function(m, site) {
+  sun  <- as.data.frame(m$metout)
+  shd  <- as.data.frame(m$shadmet)
+  # Hourly from 00:00 UTC on 1 Jan of ystart; m$dates is 23 hours short (it stops at 00:00 on 31 Dec)
+  datetime <- m$dates[1] + 3600 * (seq_len(nrow(sun)) - 1)
+  stopifnot(all(as.numeric(format(datetime, "%H")) == sun$TIME / 60))  # model hour matches clock hour
+
+  tibble(
+    Trap     = site,
+    datetime = datetime,
+    !!!sun[met_cols],
+    TALOC_shade = shd$TALOC,                       # air temp at Usrhyt under max shade
+    TSURF       = as.data.frame(m$soil)$D0cm,      # soil surface temp, min shade
+    TSURF_shade = as.data.frame(m$shadsoil)$D0cm
+  )
+})
+
+saveRDS(micro_flat, here("data", "micro_uk", "micro_uk_flat.rds"))
+
+```
+
+## Visualize some of the microclimate data. 
+
+```{r}
+#| warning: false
+#| echo: false
+
+micro_flat <- readRDS(here("data", "micro_uk", "micro_uk_flat.rds"))
+
+ggplot(data=micro_flat|>filter(year(datetime)==2019),aes(x=datetime,y=TALOC,group=Trap)) + geom_line() +facet_wrap(.~Trap)
+
+micro_flat <- micro_flat%>%group_by(Trap, datetime)%>%
+  mutate(anom_user_ref = TALOC-TAREF)
+
+ggplot(data=micro_flat|>filter(year(datetime)==2019),aes(x=datetime,y=anom_user_ref,group=Trap)) + geom_line() +facet_wrap(.~Trap)
+```
+
