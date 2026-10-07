@@ -25,7 +25,7 @@ save(folder, file = file.path(.libPaths()[1], "gcfolder.rda"))
 
 ## Get Microclimate Data
 
-Here, we will extract microclimate data for the Rothamsted site Broom's Barn for 2024. We will need to set seperate bounding boxes for each site to avoid downloading huge .nc files.
+Here, we will extract microclimate data for each of the Rothamsted sites. The data are from [CHESS-met](https://catalogue.ceh.ac.uk/documents/835a50df-e74f-4bfb-b593-804fd61d5eab) between 1990 and 2019. The data are extracted using the `micro_uk()` function in the NicheMapR package. The output is a list of microclimate data for each site, which we will then flatten into a single data frame.
 
 ```{r}
 #| warning: false

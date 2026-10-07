@@ -18,6 +18,7 @@ library(here)
 library(rstan)
 library(brms)
 library(lubridate)
+library(ggpubr)
 
 ```
 
@@ -114,25 +115,29 @@ plot_survival_curves(psc_aphid, observed = aphid_std, log_time = TRUE,
 
 Refer to the [vignette](https://daniel1noble.github.io/bayesTLS/#sec-aphids) to see how they predict survival over temperature traces. We would be able to accomplish something similar with microclimates/measured temperatures. Functions to use are `predict_heat_injury()` and `plot_heat_injury()`.
 
-Below is an example for one summer at one site.
+Below is an example for one summer at one site. Note that the `predict_heat_injury` function takes a while to run - 800 seconds on my machine.
 
 ```{r}
 #| echo: false
 #| warning: false
+#| cache: true
 micro_flat <- readRDS(here("data", "micro_uk", "micro_uk_flat.rds"))
 
-broom_2019 <- micro_flat%>%
-  filter(datetime>=as.POSIXct("06/01/2019") &
-           datetime<=as.POSIXct("09/01/2019")&
-           Trap == "Brooms_Barn_S")%>%
-  dplyr::mutate("time" = hours(datetime),
-            "temp" = TALOC,.keep="none")
+broom_2019 <- micro_flat %>%
+  filter(Trap == "Brooms_Barn_S",
+         datetime >= as.POSIXct("2019-06-01", tz = "UTC"),
+         datetime <  as.POSIXct("2019-09-01", tz = "UTC")) %>%
+  transmute(time = (datetime-min(datetime))/dhours(1), hod = hour(datetime), temp = TALOC)
 
 str(broom_2019)
 system.time(
 aphid_death_brooms_2019<-predict_heat_injury(broom_2019,
                     wf_aphid, target_surv = "relative",
                     trace_unit = "hours", by = "species"))
-
-plot_heat_injury()
+ggarrange(nrow=2,
+ggarrange(ncol=3,
+          ggplot(data = broom_2019,aes(x=time,y=temp))+geom_line() +theme_minimal(),
+          ggplot(data = broom_2019,aes(x=time,y=temp))+geom_line()+theme_minimal(),
+          ggplot(data = broom_2019,aes(x=time,y=temp))+geom_line()+theme_minimal()),
+plot_heat_injury(aphid_death_brooms_2019))
 ```
