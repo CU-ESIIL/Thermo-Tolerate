@@ -256,3 +256,36 @@ Actions taken
 * Renamed navigation section to ESIIL and Team Resources in `mkdocs.yml`.
 * Added ESIIL Community Care and Team Science GitHub links to `docs/community-care.md`.
 * Updated README and template health scripts for the new navigation layout.
+
+2026-10-02
+
+Prompt
+
+User asked for files read in `3_theory` to resolve paths from the `3_theory` folder rather than the shared repository root.
+
+Actions taken
+
+* Added `3_theory/3_theory.Rproj` so `here::here()` resolves to `3_theory`.
+* Set `execute-dir: project` in `3_theory/_quarto.yml` so Quarto renders run from `3_theory`.
+* Switched data paths in `3_theory/scripts/*.qmd` to `here("data", ...)`.
+* Added R project files to `3_theory/.gitignore`.
+
+2026-10-02
+
+Prompt
+
+User's parallel ERA5 download stopped because `request_era5(overwrite = FALSE)` errors on existing files rather than skipping them.
+
+Actions taken
+
+* Added `3_theory/scripts/download_era5.R`: per-year parallel download that skips months already downloaded, isolates failures per year, and combines months into one file per year.
+
+2026-10-05
+
+Prompt
+
+User asked to automate downloading CHESS-met for the trap sites and date range, subsetting geographically if possible.
+
+Actions taken
+
+* Added `3_theory/scripts/download_chess.R`: downloads CHESS-met v1.2 monthly files from the EIDC with a personal access token, keeps one grid cell per trap site in micro_uk's file naming, crops the elevation rasters per site, and deletes the full files.
