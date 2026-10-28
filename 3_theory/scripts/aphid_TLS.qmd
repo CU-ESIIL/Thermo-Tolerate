@@ -33,8 +33,9 @@ In their recent preprint, @noble used time to death data from @li2023 to constru
 #| message: false
 #their package includes the data we need - how convenient!
 data(aphid_tdt)
+
 aphid_raw <- aphid_tdt |>
-  dplyr::filter(branch == "heat", age == "6") |>
+  dplyr::filter(branch == "heat") |>
   dplyr::mutate(species = droplevels(species))
 
 aphid_std <- standardize_data(aphid_raw, temp = "temp", duration = "duration_min",
@@ -54,18 +55,40 @@ We use the Noble et al. code here to construct a 4PL TLS model. Note that
 # slope on k, but we constrain the asymptotes to be constant (up = ~ 1, low = ~ 1).
 # Letting up/low vary by species x temperature overfits here and there is littl evidence up 
 # and low vary dramatically with temperature.
-system.time(
+sp  <- c("speciesM_dirhodum", "speciesR_padi", "speciesS_avenae")
+dev <- c("age6", "age12",
+         "speciesR_padi:age6",   "speciesR_padi:age12",
+         "speciesS_avenae:age6", "speciesS_avenae:age12")
+
+p_final <- priors_age[priors_age$nlpar != "mid", ] +
+  # CTmaxdev: species baselines and deviations are both expected near 0 °C,
+  # so one class-level prior works; slightly tighter on the deviations
+  prior(normal(0, 2), class = "b", nlpar = "CTmaxdev") +
+  do.call(c, lapply(dev, \(cf) set_prior("normal(0, 1)", class = "b",
+                                         nlpar = "CTmaxdev", coef = cf))) +
+  # logz: species baselines centered at z ≈ 4 °C (95% ~1.5–10 °C)...
+  do.call(c, lapply(sp,  \(cf) set_prior("normal(1.39, 0.5)", class = "b",
+                                         nlpar = "logz", coef = cf))) +
+  # ...age/interaction terms are multiplicative changes in z, centered at no change
+  prior(normal(0, 0.5), class = "b", nlpar = "logz")
+
+p_final
+
+
+wf_prior <- fit_4pl(aphid_std,
+                    ctmax = ~ 0 + species * age, z = ~ 0 + species * age,
+                    k = ~ temp_c, up = ~ temp_c, low = ~ temp_c,
+                    prior = p_final, t_ref = 60, backend = "rstan",
+                    sample_prior = "only", silent = 2, refresh = 0)
+
 wf_aphid <- fit_4pl(aphid_std,
-                    ctmax = ~ 0 + species,
-                    z = ~ 0 + species,
-                    k = ~ temp_c,
-                    up = ~ 1,
-                    low = ~ 1,
-                    t_ref = 60, silent = 2, refresh = 0,
-                    backend    = "rstan",  #delete line if using cmdstanR
+                    ctmax = ~ 0 + species * age, z = ~ 0 + species * age,
+                    k = ~ temp_c, up = ~ temp_c, low = ~ temp_c,
+                    prior = p_final, t_ref = 60,
+                    silent = 2, refresh = 0, backend = "rstan",
                     file_refit = "on_change",
-                    file       = here("data", "aphid_species")))
-summary(wf_aphid)
+                    file = here("3_theory", "data", "aphid_species_age"))
+prior_summary(wf_aphid)   # confirm nothing on CTmaxdev/logz is flat
 ```
 
 ## Per-species TDT parameters
@@ -76,7 +99,7 @@ We can extract canonical TDT parameters for each species.
 #|echo: false
 #|warning: false
 
-aphid_tls <- tls(wf_aphid, by = "species", lethal = TRUE)
+aphid_tls <- tls(wf_aphid, by = c("species","age"), lethal = TRUE)
 aphid_est <- get_tls_est(aphid_tls)
 
 # One row per species: median [95% CI] for each quantity.
@@ -121,7 +144,7 @@ Below is an example for one summer at one site. Note that the `predict_heat_inju
 #| echo: false
 #| warning: false
 #| cache: true
-micro_flat <- readRDS(here("data", "micro_uk", "micro_uk_flat.rds"))
+micro_flat <- readRDS(here("3_theory","data", "micro_uk", "micro_uk_flat.rds"))
 
 broom_2019 <- micro_flat %>%
   filter(Trap == "Brooms_Barn_S",
@@ -133,7 +156,10 @@ str(broom_2019)
 system.time(
 aphid_death_brooms_2019<-predict_heat_injury(broom_2019,
                     wf_aphid, target_surv = "relative",
-                    trace_unit = "hours", by = "species"))
+                    trace_unit = "hours", by = c("species","age")))
+
+saveRDS(aphid_death_brooms_2019, here("3_theory","data","2019_surv_age_spec.rds"))
+
 ggarrange(nrow=2,
 ggarrange(ncol=3,
           ggplot(data = broom_2019,aes(x=time,y=temp))+geom_line() +theme_minimal(),
