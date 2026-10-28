@@ -3,6 +3,8 @@ title: "Aphid TLS"
 format: html
 editor: visual
 bibliography: references.bib
+execute: 
+  cache: true 
 ---
 
 ```{r}
@@ -55,6 +57,8 @@ We use the Noble et al. code here to construct a 4PL TLS model. Note that
 # slope on k, but we constrain the asymptotes to be constant (up = ~ 1, low = ~ 1).
 # Letting up/low vary by species x temperature overfits here and there is littl evidence up 
 # and low vary dramatically with temperature.
+priors_age <- make_4pl_priors(aphid_std)
+
 sp  <- c("speciesM_dirhodum", "speciesR_padi", "speciesS_avenae")
 dev <- c("age6", "age12",
          "speciesR_padi:age6",   "speciesR_padi:age12",
@@ -87,8 +91,8 @@ wf_aphid <- fit_4pl(aphid_std,
                     prior = p_final, t_ref = 60,
                     silent = 2, refresh = 0, backend = "rstan",
                     file_refit = "on_change",
-                    file = here("3_theory", "data", "aphid_species_age"))
-prior_summary(wf_aphid)   # confirm nothing on CTmaxdev/logz is flat
+                    file = here("data", "aphid_species_age"))
+
 ```
 
 ## Per-species TDT parameters
@@ -132,6 +136,8 @@ psc_aphid <- predict_survival_curves(wf_aphid)
 plot_survival_curves(psc_aphid, observed = aphid_std, log_time = TRUE,
                      clip_to_observed = FALSE)
 
+
+
 ```
 
 ## Moving forward to predicting injury and survival
@@ -144,7 +150,7 @@ Below is an example for one summer at one site. Note that the `predict_heat_inju
 #| echo: false
 #| warning: false
 #| cache: true
-micro_flat <- readRDS(here("3_theory","data", "micro_uk", "micro_uk_flat.rds"))
+micro_flat <- readRDS(here("data", "micro_uk", "micro_uk_flat.rds"))
 
 broom_2019 <- micro_flat %>%
   filter(Trap == "Brooms_Barn_S",
@@ -158,7 +164,7 @@ aphid_death_brooms_2019<-predict_heat_injury(broom_2019,
                     wf_aphid, target_surv = "relative",
                     trace_unit = "hours", by = c("species","age")))
 
-saveRDS(aphid_death_brooms_2019, here("3_theory","data","2019_surv_age_spec.rds"))
+saveRDS(aphid_death_brooms_2019, here("data","2019_surv_age_spec.rds"))
 
 ggarrange(nrow=2,
 ggarrange(ncol=3,

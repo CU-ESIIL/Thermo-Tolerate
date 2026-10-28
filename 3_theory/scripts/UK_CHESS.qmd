@@ -87,7 +87,7 @@ saveRDS(micro_flat, here("data", "micro_uk", "micro_uk_flat.rds"))
 
 ```
 
-## Visualize some of the microclimate data. 
+## Visualize some of the microclimate data.
 
 ```{r}
 #| warning: false
@@ -102,4 +102,3 @@ micro_flat <- micro_flat%>%group_by(Trap, datetime)%>%
 
 ggplot(data=micro_flat|>filter(year(datetime)==2019),aes(x=datetime,y=anom_user_ref,group=Trap)) + geom_line() +facet_wrap(.~Trap)
 ```
-
