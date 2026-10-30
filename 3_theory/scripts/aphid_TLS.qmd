@@ -166,10 +166,28 @@ aphid_death_brooms_2019<-predict_heat_injury(broom_2019,
 
 saveRDS(aphid_death_brooms_2019, here("data","2019_surv_age_spec.rds"))
 
-ggarrange(nrow=2,
-ggarrange(ncol=3,
-          ggplot(data = broom_2019,aes(x=time,y=temp))+geom_line() +theme_minimal(),
-          ggplot(data = broom_2019,aes(x=time,y=temp))+geom_line()+theme_minimal(),
-          ggplot(data = broom_2019,aes(x=time,y=temp))+geom_line()+theme_minimal()),
-plot_heat_injury(aphid_death_brooms_2019))
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| cache: true
+#| 
+aphid_death_brooms_2019 <- readRDS(here("data","2019_surv_age_spec.rds"))
+
+aphid_death_brooms_2019$summary$species_labs <- factor(aphid_death_brooms_2019$summary$species, levels = unique(aphid_death_brooms_2019$summary$species), labels =  c("Metopolophium dirhodum", "Sitobion avenae", "Rhopalosiphum padi"))
+
+aphid_death_brooms_2019_dat <- aphid_death_brooms_2019$summary
+aphid_death_brooms_2019_dat <- aphid_death_brooms_2019_dat %>%
+  mutate(time_h = time/60,
+         datetime = as.POSIXct("2019-06-01",tz = "GMT") + hours(time))
+
+ggplot(data=aphid_death_brooms_2019_dat,aes(x=datetime,group=interaction(species_labs,age), fill = age)) +
+  geom_ribbon(aes(ymin = surv_lower, ymax = surv_upper)) +
+  geom_line(aes(y = surv_median)) +
+  facet_grid(age~species_labs) +
+  theme_classic() +
+  labs( y = "Predicted Cumulative Survival", x = "Datetime", fill = "Age (days)")
+
 ```

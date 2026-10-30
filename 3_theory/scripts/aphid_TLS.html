@@ -123,31 +123,35 @@ div.csl-indent {
 <section id="cereal-aphid-tls" class="level2">
 <h2 class="anchored" data-anchor-id="cereal-aphid-tls">Cereal Aphid TLS</h2>
 <p>In their recent preprint, <span class="citation" data-cites="noble">Noble et al. (<a href="#ref-noble" role="doc-biblioref">n.d.</a>)</span> used time to death data from <span class="citation" data-cites="li2023">Li et al. (<a href="#ref-li2023" role="doc-biblioref">2023</a>)</span> to construct Bayesian thermal tolerance landscapes using the <code>bayesTLS</code> package. Conveniently, the three species in the paper (<em>Metopolophium dirhodum</em>, <em>Sitobion avenae</em> and <em>Rhopalosiphum padi</em>) are the same three species we extracted abundnace data for from 15 sites in the Rothamsted insect survey (<code>rothamsted_data_readin.qmd</code>). For future use, we replicate their analysis (found at <a href="https://daniel1noble.github.io/bayesTLS/#sec-aphids" class="uri">https://daniel1noble.github.io/bayesTLS/#sec-aphids</a>) here.</p>
+</section>
+<section id="data-read-in" class="level2">
+<h2 class="anchored" data-anchor-id="data-read-in">Data Read-in</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#their package includes the data we need - how convenient!</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(aphid_tdt)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>aphid_raw <span class="ot">&lt;-</span> aphid_tdt <span class="sc">|&gt;</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(branch <span class="sc">==</span> <span class="st">"heat"</span>, age <span class="sc">==</span> <span class="st">"6"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">species =</span> <span class="fu">droplevels</span>(species))</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>aphid_std <span class="ot">&lt;-</span> <span class="fu">standardize_data</span>(aphid_raw, <span class="at">temp =</span> <span class="st">"temp"</span>, <span class="at">duration =</span> <span class="st">"duration_min"</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                              <span class="at">n_total =</span> <span class="st">"n_total"</span>, <span class="at">n_surv =</span> <span class="st">"n_surv"</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                              <span class="at">duration_unit =</span> <span class="st">"minutes"</span>)   <span class="co"># keeps `species`</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(aphid_std)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>aphid_raw <span class="ot">&lt;-</span> aphid_tdt <span class="sc">|&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(branch <span class="sc">==</span> <span class="st">"heat"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">species =</span> <span class="fu">droplevels</span>(species))</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>aphid_std <span class="ot">&lt;-</span> <span class="fu">standardize_data</span>(aphid_raw, <span class="at">temp =</span> <span class="st">"temp"</span>, <span class="at">duration =</span> <span class="st">"duration_min"</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                              <span class="at">n_total =</span> <span class="st">"n_total"</span>, <span class="at">n_surv =</span> <span class="st">"n_surv"</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>                              <span class="at">duration_unit =</span> <span class="st">"minutes"</span>)   <span class="co"># keeps `species`</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(aphid_std)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>tibble [436 × 12] (S3: tbl_df/tbl/data.frame)
+<pre><code>tibble [1,314 × 12] (S3: tbl_df/tbl/data.frame)
  $ species     : Factor w/ 3 levels "M_dirhodum","S_avenae",..: 1 1 1 1 1 1 1 1 1 1 ...
- $ age         : Factor w/ 3 levels "2","6","12": 2 2 2 2 2 2 2 2 2 2 ...
+ $ age         : Factor w/ 3 levels "2","6","12": 1 1 1 1 1 1 1 1 1 1 ...
  $ branch      : Factor w/ 2 levels "heat","cold": 1 1 1 1 1 1 1 1 1 1 ...
- $ temp        : num [1:436] 40 40 40 40 40 40 40 40 40 40 ...
- $ duration_min: num [1:436] 2 2 4 4 4 5 5 5 6 6 ...
- $ n_total     : int [1:436] 4 10 9 10 10 10 10 10 10 9 ...
- $ n_surv      : num [1:436] 4 9 9 10 10 8 6 5 2 6 ...
- $ duration    : num [1:436] 2 2 4 4 4 5 5 5 6 6 ...
- $ logd        : num [1:436] 0.301 0.301 0.602 0.602 0.602 ...
- $ n_dead      : num [1:436] 0 1 0 0 0 2 4 5 8 3 ...
- $ survival    : num [1:436] 1 0.9 1 1 1 ...
- $ temp_c      : num [1:436] 3.13 3.13 3.13 3.13 3.13 ...
+ $ temp        : num [1:1314] 40 40 40 40 40 40 40 40 40 40 ...
+ $ duration_min: num [1:1314] 2 2 2 4 4 4 6 6 6 8 ...
+ $ n_total     : int [1:1314] 10 10 10 10 10 14 8 10 11 10 ...
+ $ n_surv      : num [1:1314] 10 10 10 9 8 8 5 6 2 4 ...
+ $ duration    : num [1:1314] 2 2 2 4 4 4 6 6 6 8 ...
+ $ logd        : num [1:1314] 0.301 0.301 0.301 0.602 0.602 ...
+ $ n_dead      : num [1:1314] 0 0 0 1 2 6 3 4 9 6 ...
+ $ survival    : num [1:1314] 1 1 1 0.9 0.8 ...
+ $ temp_c      : num [1:1314] 3.12 3.12 3.12 3.12 3.12 ...
  - attr(*, "tdt_meta")=List of 6
   ..$ temp_mean     : num 36.9
   ..$ duration_unit : chr "minutes"
@@ -155,6 +159,231 @@ div.csl-indent {
   ..$ response_type : chr "count"
   ..$ response_var  : NULL
   ..$ proportion_eps: NULL</code></pre>
+</div>
+</div>
+</section>
+<section id="construct-4pl-tls-model" class="level2">
+<h2 class="anchored" data-anchor-id="construct-4pl-tls-model">Construct 4PL TLS Model</h2>
+<p>We use the Noble et al.&nbsp;code here to construct a 4PL TLS model. Note that</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Species effects on z and CTmax with a temperature</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># slope on k, but we constrain the asymptotes to be constant (up = ~ 1, low = ~ 1).</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Letting up/low vary by species x temperature overfits here and there is littl evidence up </span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># and low vary dramatically with temperature.</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>priors_age <span class="ot">&lt;-</span> <span class="fu">make_4pl_priors</span>(aphid_std)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>sp  <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"speciesM_dirhodum"</span>, <span class="st">"speciesR_padi"</span>, <span class="st">"speciesS_avenae"</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>dev <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"age6"</span>, <span class="st">"age12"</span>,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>         <span class="st">"speciesR_padi:age6"</span>,   <span class="st">"speciesR_padi:age12"</span>,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>         <span class="st">"speciesS_avenae:age6"</span>, <span class="st">"speciesS_avenae:age12"</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>p_final <span class="ot">&lt;-</span> priors_age[priors_age<span class="sc">$</span>nlpar <span class="sc">!=</span> <span class="st">"mid"</span>, ] <span class="sc">+</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># CTmaxdev: species baselines and deviations are both expected near 0 °C,</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># so one class-level prior works; slightly tighter on the deviations</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">2</span>), <span class="at">class =</span> <span class="st">"b"</span>, <span class="at">nlpar =</span> <span class="st">"CTmaxdev"</span>) <span class="sc">+</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">do.call</span>(c, <span class="fu">lapply</span>(dev, \(cf) <span class="fu">set_prior</span>(<span class="st">"normal(0, 1)"</span>, <span class="at">class =</span> <span class="st">"b"</span>,</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>                                         <span class="at">nlpar =</span> <span class="st">"CTmaxdev"</span>, <span class="at">coef =</span> cf))) <span class="sc">+</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># logz: species baselines centered at z ≈ 4 °C (95% ~1.5–10 °C)...</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">do.call</span>(c, <span class="fu">lapply</span>(sp,  \(cf) <span class="fu">set_prior</span>(<span class="st">"normal(1.39, 0.5)"</span>, <span class="at">class =</span> <span class="st">"b"</span>,</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>                                         <span class="at">nlpar =</span> <span class="st">"logz"</span>, <span class="at">coef =</span> cf))) <span class="sc">+</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ...age/interaction terms are multiplicative changes in z, centered at no change</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">0.5</span>), <span class="at">class =</span> <span class="st">"b"</span>, <span class="at">nlpar =</span> <span class="st">"logz"</span>)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>p_final</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                prior class                  coef group resp dpar    nlpar   lb
+ normal(-3.227262, 1)     b             Intercept                   lowraw &lt;NA&gt;
+       normal(0, 0.5)     b                                         lowraw &lt;NA&gt;
+  normal(3.227262, 1)     b             Intercept                    upraw &lt;NA&gt;
+       normal(0, 0.5)     b                                          upraw &lt;NA&gt;
+  normal(0.693147, 1)     b             Intercept                     logk &lt;NA&gt;
+       normal(0, 0.3)     b                                           logk &lt;NA&gt;
+        gamma(2, 0.1)   phi                                                &lt;NA&gt;
+         normal(0, 2)     b                                       CTmaxdev &lt;NA&gt;
+         normal(0, 1)     b                  age6                 CTmaxdev &lt;NA&gt;
+         normal(0, 1)     b                 age12                 CTmaxdev &lt;NA&gt;
+         normal(0, 1)     b    speciesR_padi:age6                 CTmaxdev &lt;NA&gt;
+         normal(0, 1)     b   speciesR_padi:age12                 CTmaxdev &lt;NA&gt;
+         normal(0, 1)     b  speciesS_avenae:age6                 CTmaxdev &lt;NA&gt;
+         normal(0, 1)     b speciesS_avenae:age12                 CTmaxdev &lt;NA&gt;
+    normal(1.39, 0.5)     b     speciesM_dirhodum                     logz &lt;NA&gt;
+    normal(1.39, 0.5)     b         speciesR_padi                     logz &lt;NA&gt;
+    normal(1.39, 0.5)     b       speciesS_avenae                     logz &lt;NA&gt;
+       normal(0, 0.5)     b                                           logz &lt;NA&gt;
+   ub tag source
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user
+ &lt;NA&gt;       user</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>wf_prior <span class="ot">&lt;-</span> <span class="fu">fit_4pl</span>(aphid_std,</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                    <span class="at">ctmax =</span> <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> species <span class="sc">*</span> age, <span class="at">z =</span> <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> species <span class="sc">*</span> age,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>                    <span class="at">k =</span> <span class="sc">~</span> temp_c, <span class="at">up =</span> <span class="sc">~</span> temp_c, <span class="at">low =</span> <span class="sc">~</span> temp_c,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                    <span class="at">prior =</span> p_final, <span class="at">t_ref =</span> <span class="dv">60</span>, <span class="at">backend =</span> <span class="st">"rstan"</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                    <span class="at">sample_prior =</span> <span class="st">"only"</span>, <span class="at">silent =</span> <span class="dv">2</span>, <span class="at">refresh =</span> <span class="dv">0</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>wf_aphid <span class="ot">&lt;-</span> <span class="fu">fit_4pl</span>(aphid_std,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                    <span class="at">ctmax =</span> <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> species <span class="sc">*</span> age, <span class="at">z =</span> <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> species <span class="sc">*</span> age,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                    <span class="at">k =</span> <span class="sc">~</span> temp_c, <span class="at">up =</span> <span class="sc">~</span> temp_c, <span class="at">low =</span> <span class="sc">~</span> temp_c,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>                    <span class="at">prior =</span> p_final, <span class="at">t_ref =</span> <span class="dv">60</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>                    <span class="at">silent =</span> <span class="dv">2</span>, <span class="at">refresh =</span> <span class="dv">0</span>, <span class="at">backend =</span> <span class="st">"rstan"</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>                    <span class="at">file_refit =</span> <span class="st">"on_change"</span>,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>                    <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"aphid_species_age"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="per-species-tdt-parameters" class="level2">
+<h2 class="anchored" data-anchor-id="per-species-tdt-parameters">Per-species TDT parameters</h2>
+<p>We can extract canonical TDT parameters for each species.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#|echo: false</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#|warning: false</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>aphid_tls <span class="ot">&lt;-</span> <span class="fu">tls</span>(wf_aphid, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"species"</span>,<span class="st">"age"</span>), <span class="at">lethal =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`t_ref` not provided; defaulting to the model fit's reference exposure: 60 min (1 hour). Pass `t_ref` explicitly to read CTmax at a different reference.</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>aphid_est <span class="ot">&lt;-</span> <span class="fu">get_tls_est</span>(aphid_tls)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># One row per species: median [95% CI] for each quantity.</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>aphid_tls_tbl <span class="ot">&lt;-</span> aphid_est <span class="sc">|&gt;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">value    =</span> <span class="fu">format_interval</span>(median, lower, upper, <span class="at">digits =</span> <span class="dv">1</span>),</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">quantity =</span> <span class="fu">factor</span>(quantity, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"z"</span>, <span class="st">"CTmax"</span>, <span class="st">"Tcrit"</span>),</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>                      <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"z (°C)"</span>, <span class="st">"CTmax 1h (°C)"</span>, <span class="st">"Tcrit (°C)"</span>)),</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">species  =</span> dplyr<span class="sc">::</span><span class="fu">recode</span>(species, <span class="at">M_dirhodum =</span> <span class="st">"M. dirhodum"</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>                             <span class="at">R_padi =</span> <span class="st">"R. padi"</span>, <span class="at">S_avenae =</span> <span class="st">"S. avenae"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(species, quantity, value) <span class="sc">|&gt;</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(<span class="at">names_from =</span> quantity, <span class="at">values_from =</span> value) <span class="sc">|&gt;</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="at">Species =</span> species)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Values from `value` are not uniquely identified; output will contain list-cols.
+• Use `values_fn = list` to suppress this warning.
+• Use `values_fn = {summary_fun}` to summarise duplicates.
+• Use the following dplyr code to identify duplicates.
+  {data} |&gt;
+  dplyr::summarise(n = dplyr::n(), .by = c(species, quantity)) |&gt;
+  dplyr::filter(n &gt; 1L)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>tinytable<span class="sc">::</span><span class="fu">tt</span>(aphid_tls_tbl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
+
+    <script>
+      // Create table-specific functions using external factory
+      const tableFns_xjsofcc3rx04nmz1t5d1 = TinyTable.createTableFunctions("tinytable_xjsofcc3rx04nmz1t5d1");
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '3', j: 1 }, { i: '3', j: 2 }, { i: '3', j: 3 }, { i: '3', j: 4 } ], css_id: 'tinytable_css_9e0di8avt8b3bon09ijv',}, 
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_ocxtpmadiawgnwsdgjdv',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  tableFns_xjsofcc3rx04nmz1t5d1.styleCell(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
+    <style>
+    /* tinytable css entries after */
+    #tinytable_xjsofcc3rx04nmz1t5d1 td.tinytable_css_9e0di8avt8b3bon09ijv, #tinytable_xjsofcc3rx04nmz1t5d1 th.tinytable_css_9e0di8avt8b3bon09ijv {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_xjsofcc3rx04nmz1t5d1 td.tinytable_css_ocxtpmadiawgnwsdgjdv, #tinytable_xjsofcc3rx04nmz1t5d1 th.tinytable_css_ocxtpmadiawgnwsdgjdv {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    </style>
+    <div class="container">
+      <table class="tinytable" id="tinytable_xjsofcc3rx04nmz1t5d1" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        
+        <thead>
+              <tr>
+                <th scope="col" data-row="0" data-col="1">Species</th>
+                <th scope="col" data-row="0" data-col="2">z (°C)</th>
+                <th scope="col" data-row="0" data-col="3">CTmax 1h (°C)</th>
+                <th scope="col" data-row="0" data-col="4">Tcrit (°C)</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td data-row="1" data-col="1">M. dirhodum</td>
+                  <td data-row="1" data-col="2">4.8 [4.6, 5.1], 4.8 [4.5, 5.1], 4.1 [3.9, 4.3]</td>
+                  <td data-row="1" data-col="3">35.1 [35, 35.3], 35.2 [35, 35.4], 36 [35.9, 36]</td>
+                  <td data-row="1" data-col="4">23 [20.5, 25.5]  , 23.3 [20.7, 25.7], 25.8 [23.7, 27.8]</td>
+                </tr>
+                <tr>
+                  <td data-row="2" data-col="1">R. padi</td>
+                  <td data-row="2" data-col="2">3.6 [3.4, 3.7], 4 [3.7, 4.3]  , 4.1 [3.8, 4.5]</td>
+                  <td data-row="2" data-col="3">36.6 [36.5, 36.7], 37.1 [37, 37.2]  , 36.9 [36.7, 37]</td>
+                  <td data-row="2" data-col="4">27.8 [25.9, 29.5], 27.2 [25, 29.2]  , 26.7 [24.2, 28.8]</td>
+                </tr>
+                <tr>
+                  <td data-row="3" data-col="1">S. avenae</td>
+                  <td data-row="3" data-col="2">4.4 [4.1, 4.7], 3.7 [3.5, 3.8], 3.4 [3.2, 3.6]</td>
+                  <td data-row="3" data-col="3">35.9 [35.7, 36]  , 36.5 [36.4, 36.6], 36.6 [36.4, 36.7]</td>
+                  <td data-row="3" data-col="4">24.8 [22.4, 27.1], 27.3 [25.5, 29.2], 28.1 [26.2, 29.8]</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</section>
+<section id="thermal-tolerance-landscapes" class="level2">
+<h2 class="anchored" data-anchor-id="thermal-tolerance-landscapes">Thermal Tolerance Landscapes</h2>
+<p>We can plot the survival curves across experimental temperatures</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="aphid_TLS_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="moving-forward-to-predicting-injury-and-survival" class="level2">
+<h2 class="anchored" data-anchor-id="moving-forward-to-predicting-injury-and-survival">Moving forward to predicting injury and survival</h2>
+<p>Refer to the <a href="https://daniel1noble.github.io/bayesTLS/#sec-aphids">vignette</a> to see how they predict survival over temperature traces. We would be able to accomplish something similar with microclimates/measured temperatures. Functions to use are <code>predict_heat_injury()</code> and <code>plot_heat_injury()</code>.</p>
+<p>Below is an example for one summer at one site. Note that the <code>predict_heat_injury</code> function takes a while to run - 800 seconds on my machine.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>tibble [2,208 × 3] (S3: tbl_df/tbl/data.frame)
+ $ time: num [1:2208] 0 1 2 3 4 5 6 7 8 9 ...
+ $ hod : int [1:2208] 0 1 2 3 4 5 6 7 8 9 ...
+ $ temp: num [1:2208] 12.1 12.1 12 11.8 12 ...</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   user  system elapsed 
+2073.33   45.41 4319.32 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="aphid_TLS_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 
